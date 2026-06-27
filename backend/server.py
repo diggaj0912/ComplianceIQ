@@ -141,7 +141,7 @@ def gst_summary(db: Session = Depends(get_db)):
         "total_itc": round(total_itc, 2),
         "net_payable": round(net_payable, 2),
         "rate_buckets": {k: round(v, 2) for k, v in buckets.items()},
-        "filing_due": "2025-07-20",
+        "filing_due": "2026-07-20",
         "status": "Filed" if net_payable == 0 else "Pending"
     }
 
@@ -149,12 +149,12 @@ def gst_summary(db: Session = Depends(get_db)):
 @app.get("/api/calendar")
 def compliance_calendar():
     return {"deadlines": [
-        {"id": 1, "title": "GSTR-1 Filing", "due_date": "2025-07-11", "status": "Upcoming", "type": "GST"},
-        {"id": 2, "title": "GSTR-3B Filing", "due_date": "2025-07-20", "status": "Upcoming", "type": "GST"},
-        {"id": 3, "title": "TDS Payment", "due_date": "2025-07-07", "status": "Upcoming", "type": "TDS"},
+        {"id": 1, "title": "GSTR-1 Filing", "due_date": "2026-07-11", "status": "Upcoming", "type": "GST"},
+        {"id": 2, "title": "GSTR-3B Filing", "due_date": "2026-07-20", "status": "Upcoming", "type": "GST"},
+        {"id": 3, "title": "TDS Payment", "due_date": "2026-07-07", "status": "Upcoming", "type": "TDS"},
         {"id": 4, "title": "Advance Tax Q1", "due_date": "2025-06-15", "status": "Completed", "type": "Income Tax"},
         {"id": 5, "title": "GSTR-1 (May)", "due_date": "2025-06-11", "status": "Completed", "type": "GST"},
-        {"id": 6, "title": "GSTR-9 Annual", "due_date": "2025-12-31", "status": "Upcoming", "type": "GST"},
+        {"id": 6, "title": "GSTR-9 Annual", "due_date": "2026-12-31", "status": "Upcoming", "type": "GST"},
     ]}
 
 # ─── AUDIT TRAIL ──────────────────────────────────────────
@@ -347,3 +347,123 @@ def generate_pdf(db: Session = Depends(get_db)):
     elements.append(t2)
     doc.build(elements)
     return FileResponse(tmp.name, media_type="application/pdf", filename="ComplianceIQ_Report.pdf")
+
+@app.post("/api/chat/smart")
+async def smart_chat(req: ChatRequest, db: Session = Depends(get_db)):
+    """Multi-LLM Router — routes based on query complexity"""
+    msg = req.message.lower()
+    
+    # Routing logic
+    if any(w in msg for w in ["calculate", "how much", "total", "net", "itc", "payable"]):
+        provider = "groq"
+        model = "llama-3.3-70b-versatile"
+        reason = "Numerical calculation → Groq (fastest inference)"
+    elif any(w in msg for w in ["explain", "why", "what is", "difference", "strategy"]):
+        provider = "groq"
+        model = "llama-3.3-70b-versatile" 
+        reason = "Complex reasoning → Groq LLaMA 70B"
+    else:
+        provider = "groq"
+        model = "llama-3.3-70b-versatile"
+        reason = "General query → Groq (default)"
+
+    try:
+        from groq import Groq
+        client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        txns = db.query(models.Transaction).count()
+        total_gst = sum(t.gst_amount for t in db.query(models.Transaction).all())
+        flagged = db.query(models.Transaction).filter(models.Transaction.is_anomaly == True).count()
+        
+        system_prompt = f"""You are ComplianceIQ AI. Current data: {txns} transactions, ₹{round(total_gst,2)} GST liability, {flagged} anomalies. Be concise and specific."""
+        
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role":"system","content":system_prompt},{"role":"user","content":req.message}],
+            max_tokens=400
+        )
+        reply = response.choices[0].message.content
+    except:
+        reply = f"Based on your data: {db.query(models.Transaction).count()} transactions processed. How can I help?"
+    
+    return {"reply": reply, "provider": provider, "model": model, "routing_reason": reason}
+
+@app.get("/api/deadlines/countdown")
+def deadline_countdown():
+    from datetime import date
+    today = date.today()
+    deadlines = [
+        {"title": "GSTR-1", "due": "2026-07-11", "type": "GST"},
+        {"title": "GSTR-3B", "due": "2026-07-20", "type": "GST"},
+        {"title": "TDS Payment", "due": "2026-07-07", "type": "TDS"},
+        {"title": "GSTR-9 Annual", "due": "2026-12-31", "type": "GST"},
+    ]
+    result = []
+    for d in deadlines:
+        due_date = date.fromisoformat(d["due"])
+        days_left = (due_date - today).days
+        result.append({**d, "days_left": days_left, "urgent": days_left <= 7})
+    return {"deadlines": sorted(result, key=lambda x: x["days_left"])}
+
+@app.get("/api/invoice/{transaction_id}")
+def generate_invoice(transaction_id: int, db: Session = Depends(get_db)):
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet
+    from fastapi.responses import FileResponse
+    import tempfile
+    
+    txn = db.query(models.Transaction).filter(models.Transaction.id == transaction_id).first()
+    if not txn:
+        raise HTTPException(404, "Transaction not found")
+    
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+    doc = SimpleDocTemplate(tmp.name, pagesize=A4, topMargin=40, bottomMargin=40)
+    styles = getSampleStyleSheet()
+    elements = []
+    
+    elements.append(Paragraph("TAX INVOICE", styles["Title"]))
+    elements.append(Paragraph("ComplianceIQ Pvt. Ltd. | GSTIN: 29AABCC1234D1Z5", styles["Normal"]))
+    elements.append(Spacer(1, 20))
+    
+    inv_data = [
+        ["Invoice No:", f"INV-2025-{transaction_id:04d}", "Date:", txn.date],
+        ["GSTIN:", "29AABCC1234D1Z5", "Due Date:", txn.date],
+    ]
+    t1 = Table(inv_data, colWidths=[80,150,80,150])
+    t1.setStyle(TableStyle([
+        ("FONTSIZE",(0,0),(-1,-1),10),
+        ("TEXTCOLOR",(0,0),(0,-1),colors.HexColor("#6366f1")),
+        ("TEXTCOLOR",(2,0),(2,-1),colors.HexColor("#6366f1")),
+        ("FONTNAME",(0,0),(0,-1),"Helvetica-Bold"),
+        ("FONTNAME",(2,0),(2,-1),"Helvetica-Bold"),
+    ]))
+    elements.append(t1)
+    elements.append(Spacer(1, 20))
+    
+    items = [
+        ["Description", "HSN/SAC", "Amount", "GST Rate", "GST Amount", "Total"],
+        [txn.description, "9983", f"Rs.{txn.amount:,.2f}", f"{txn.gst_rate}%", f"Rs.{txn.gst_amount:,.2f}", f"Rs.{txn.amount+txn.gst_amount:,.2f}"],
+        ["","","","","CGST:", f"Rs.{txn.gst_amount/2:,.2f}"],
+        ["","","","","SGST:", f"Rs.{txn.gst_amount/2:,.2f}"],
+        ["","","","","Total Payable:", f"Rs.{txn.amount+txn.gst_amount:,.2f}"],
+    ]
+    t2 = Table(items, colWidths=[140,60,70,60,80,80])
+    t2.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,0),colors.HexColor("#6366f1")),
+        ("TEXTCOLOR",(0,0),(-1,0),colors.white),
+        ("FONTNAME",(0,0),(-1,0),"Helvetica-Bold"),
+        ("FONTSIZE",(0,0),(-1,-1),9),
+        ("GRID",(0,0),(-1,1),0.5,colors.HexColor("#e2e8f0")),
+        ("BACKGROUND",(4,2),(-1,-1),colors.HexColor("#f8fafc")),
+        ("FONTNAME",(4,2),(4,-1),"Helvetica-Bold"),
+        ("TEXTCOLOR",(4,-1),(-1,-1),colors.HexColor("#6366f1")),
+        ("FONTNAME",(4,-1),(-1,-1),"Helvetica-Bold"),
+        ("PADDING",(0,0),(-1,-1),8),
+    ]))
+    elements.append(t2)
+    elements.append(Spacer(1,30))
+    elements.append(Paragraph("Generated by ComplianceIQ AI — India's smartest GST compliance agent", styles["Normal"]))
+    
+    doc.build(elements)
+    return FileResponse(tmp.name, media_type="application/pdf", filename=f"Invoice_INV-2025-{transaction_id:04d}.pdf")
