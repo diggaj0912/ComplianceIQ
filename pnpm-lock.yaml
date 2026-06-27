@@ -11,19 +11,34 @@ importers:
 
   .:
     dependencies:
+      axios:
+        specifier: ^1.18.1
+        version: 1.18.1
       lucide-react:
-        specifier: 0.487.0
+        specifier: ^0.487.0
         version: 0.487.0(react@18.3.1)
       react:
-        specifier: 18.3.1f
+        specifier: 18.3.1
         version: 18.3.1
       react-router:
         specifier: 7.13.0
         version: 7.13.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      recharts:
+        specifier: ^3.9.0
+        version: 3.9.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     devDependencies:
+      autoprefixer:
+        specifier: ^10.5.2
+        version: 10.5.2(postcss@8.5.15)
       concurrently:
         specifier: ^8.2.2
         version: 8.2.2
+      postcss:
+        specifier: ^8.5.15
+        version: 8.5.15
+      tailwindcss:
+        specifier: ^4.3.1
+        version: 4.3.1
 
   frontend:
     dependencies:
