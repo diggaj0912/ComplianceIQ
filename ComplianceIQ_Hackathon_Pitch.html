@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ComplianceIQ Pitch Deck</title>
+  <style>
+    :root {
+      --bg: #08111f;
+      --panel: rgba(15, 23, 42, 0.78);
+      --panel-2: rgba(255,255,255,0.05);
+      --text: #e5eefc;
+      --muted: #93a4bf;
+      --accent: #7c3aed;
+      --accent-2: #6366f1;
+      --good: #22c55e;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --line: rgba(148,163,184,.18);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(124,58,237,.25), transparent 30%),
+        radial-gradient(circle at top right, rgba(99,102,241,.22), transparent 28%),
+        linear-gradient(180deg, #020817 0%, var(--bg) 100%);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .chrome {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 10;
+      background: rgba(2,6,23,.65);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(148,163,184,.14);
+    }
+    .brand { font-weight: 700; letter-spacing: .2px; }
+    .hint { color: var(--muted); font-size: 13px; }
+    .deck {
+      width: 100vw;
+      height: 100vh;
+      padding-top: 56px;
+      position: relative;
+    }
+    .slide {
+      position: absolute;
+      inset: 56px 0 0 0;
+      padding: 28px 34px 32px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(32px);
+      transition: opacity .28s ease, transform .28s ease;
+    }
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+    .frame {
+      height: calc(100vh - 112px);
+      border: 1px solid rgba(148,163,184,.14);
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(15,23,42,.8), rgba(15,23,42,.92));
+      box-shadow: 0 24px 80px rgba(0,0,0,.38);
+      overflow: hidden;
+      position: relative;
+      padding: 34px 38px;
+    }
+    .slide h1, .slide h2, .slide h3, .slide p { margin: 0; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      color: #c4b5fd;
+      background: rgba(124,58,237,.15);
+      border: 1px solid rgba(124,58,237,.28);
+      padding: 8px 12px;
+      border-radius: 999px;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr .9fr;
+      gap: 28px;
+      align-items: center;
+      height: 100%;
+    }
+    .title { font-size: 60px; line-height: .98; margin-top: 18px; letter-spacing: -0.04em; }
+    .subtitle { font-size: 25px; margin-top: 14px; color: #c7d2fe; font-weight: 700; }
+    .lede { margin-top: 18px; max-width: 630px; font-size: 18px; line-height: 1.6; color: #dbe7ff; }
+    .kpis { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-top: 28px; }
+    .kpi {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(148,163,184,.14);
+      border-radius: 18px;
+      padding: 16px 16px 14px;
+    }
+    .kpi .num { font-size: 28px; font-weight: 800; color: white; }
+    .kpi .lbl { margin-top: 4px; font-size: 13px; color: var(--muted); line-height: 1.35; }
+    .hero-card {
+      height: 100%;
+      background: radial-gradient(circle at 20% 20%, rgba(124,58,237,.16), transparent 26%), rgba(255,255,255,.03);
+      border: 1px solid rgba(148,163,184,.18);
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    .hero-card img { width: 300px; max-width: 100%; filter: drop-shadow(0 18px 44px rgba(124,58,237,.25)); }
+    .hero-card .caption { margin-top: 22px; color: #dbeafe; font-weight: 700; }
+    .hero-card .sub { margin-top: 8px; color: var(--muted); font-size: 14px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 18px; }
+    .panel {
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 20px;
+    }
+    .panel h2 { font-size: 22px; margin-bottom: 10px; }
+    .panel p, .panel li { color: #d6e1f7; line-height: 1.65; font-size: 16px; }
+    ul { margin: 10px 0 0 18px; padding: 0; }
+    li { margin-bottom: 8px; }
+    .metric {
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 18px;
+      min-height: 160px;
+    }
+    .metric .big { font-size: 30px; font-weight: 800; margin-top: 10px; }
+    .metric .small { margin-top: 8px; color: var(--muted); font-size: 14px; }
+    .accent-bar { height: 6px; border-radius: 999px; background: linear-gradient(90deg, var(--accent-2), var(--accent)); margin-bottom: 18px; }
+    .footer {
+      position: absolute;
+      right: 28px;
+      bottom: 18px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .nav {
+      position: fixed;
+      left: 18px;
+      bottom: 18px;
+      display: flex;
+      gap: 8px;
+      z-index: 20;
+      background: rgba(2,6,23,.58);
+      border: 1px solid rgba(148,163,184,.18);
+      border-radius: 999px;
+      padding: 8px;
+      backdrop-filter: blur(12px);
+    }
+    .btn {
+      border: 0;
+      color: white;
+      background: rgba(255,255,255,.08);
+      border-radius: 999px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn:hover { background: rgba(255,255,255,.14); }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid rgba(148,163,184,.16);
+      background: rgba(255,255,255,.05);
+    }
+    .stack {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .stack .item { padding: 16px; border-radius: 18px; background: rgba(255,255,255,.04); border: 1px solid var(--line); }
+    .stack .item h4 { margin-bottom: 6px; color: white; }
+    .side-note { color: var(--muted); font-size: 14px; line-height: 1.55; }
+    @media (max-width: 1100px) {
+      .hero-grid, .grid-2, .grid-3, .stack { grid-template-columns: 1fr; }
+      .title { font-size: 46px; }
+      .slide { padding: 18px; }
+      .frame { padding: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="chrome">
+    <div class="brand">ComplianceIQ Pitch Deck</div>
+    <div class="hint">Use ← → to navigate</div>
+  </div>
+
+  <div class="deck" id="deck">
+    <section class="slide active">
+      <div class="frame">
+        <div class="hero-grid">
+          <div>
+            <div class="eyebrow">India-first AI compliance</div>
+            <div class="title">ComplianceIQ</div>
+            <div class="subtitle">AI-Powered GST Compliance Agent</div>
+            <p class="lede">Turns raw transaction data into audit-ready GST filings in seconds. Built for tax teams that need speed, clarity, and an instant answer to every compliance question.</p>
+            <div class="kpis">
+              <div class="kpi"><div class="num">40+ hrs</div><div class="lbl">saved per month on manual compliance work</div></div>
+              <div class="kpi"><div class="num">100%</div><div class="lbl">audit trail coverage for every action</div></div>
+              <div class="kpi"><div class="num">₹1.8L</div><div class="lbl">avg ITC savings per filing cycle</div></div>
+            </div>
+          </div>
+          <div class="hero-card">
+            <img src="backend/src/assets/hero.png" alt="ComplianceIQ visual" />
+            <div class="caption">Offline-ready. Demo-safe. Production-minded.</div>
+            <div class="sub">Built in 18 hours for a strong hackathon demo.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="eyebrow">The problem</div>
+        <h2 style="font-size: 42px; margin-top: 14px;">Indian GST compliance is slow, error-prone, and expensive.</h2>
+        <div class="grid-3" style="margin-top: 22px;">
+          <div class="metric"><div class="badge">Annual loss</div><div class="big">₹2.3 lakh crore</div><div class="small">lost due to filing errors, missed ITC claims, and penalties</div></div>
+          <div class="metric"><div class="badge">Manual effort</div><div class="big">40+ hrs/month</div><div class="small">spent parsing CSVs and reconciling liabilities</div></div>
+          <div class="metric"><div class="badge">Complexity</div><div class="big">5 GST slabs</div><div class="small">0 / 5 / 12 / 18 / 28% classification creates friction</div></div>
+        </div>
+        <div class="grid-2" style="margin-top: 18px;">
+          <div class="panel">
+            <h2>What teams struggle with</h2>
+            <ul>
+              <li>Messy transaction data arrives in inconsistent CSVs</li>
+              <li>Slab categorization is still done manually</li>
+              <li>ITC claims are missed or delayed</li>
+              <li>Audit evidence is scattered across tools</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h2>Why dashboards fail</h2>
+            <p>Most tools show numbers, but do not explain anomalies, optimize ITC, or answer questions in real time. Compliance teams need guidance, not just charts.</p>
+          </div>
+        </div>
+        <div class="footer">Problem framing</div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="eyebrow">Our solution</div>
+        <h2 style="font-size: 42px; margin-top: 14px;">Upload once. Ask anything. File faster.</h2>
+        <div class="stack">
+          <div class="item"><h4>1. Upload CSV</h4><div class="side-note">Bring in raw transaction data.</div></div>
+          <div class="item"><h4>2. Rules Engine</h4><div class="side-note">Auto-categorizes transactions across GST slabs.</div></div>
+          <div class="item"><h4>3. AI ITC</h4><div class="side-note">Optimizes eligible input tax credit.</div></div>
+          <div class="item"><h4>4. Audit Log</h4><div class="side-note">Every action is immutably logged.</div></div>
+        </div>
+        <div class="panel" style="margin-top: 18px;">
+          <h2>Core product loop</h2>
+          <p>ComplianceIQ transforms a messy import into a guided workflow: calculations, explanations, reminders, and evidence all in one place. The AI agent makes the product feel alive instead of static.</p>
+        </div>
+        <div class="footer">Product flow</div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="eyebrow">Why it wins</div>
+        <h2 style="font-size: 42px; margin-top: 14px;">A conversational AI compliance agent, not another dashboard.</h2>
+        <div class="grid-2" style="margin-top: 22px;">
+          <div class="panel">
+            <h2>Static tools</h2>
+            <ul>
+              <li>Show charts but do not explain them</li>
+              <li>Need manual navigation to find answers</li>
+              <li>Break when API or model is unavailable</li>
+              <li>Leave audit evidence scattered</li>
+            </ul>
+          </div>
+          <div class="panel" style="background: rgba(99,102,241,.14);">
+            <h2>ComplianceIQ</h2>
+            <ul>
+              <li>Ask natural-language questions over your data</li>
+              <li>Get AI-backed answers instantly</li>
+              <li>Offline mock fallback keeps demos alive</li>
+              <li>Everything is written to an audit trail</li>
+            </ul>
+          </div>
+        </div>
+        <div class="panel" style="margin-top: 18px; text-align: center;">
+          <p style="font-size: 18px; font-weight: 700; color: white;">Static dashboard + AI assistant + audit trail + offline safety = a stronger hackathon story.</p>
+        </div>
+        <div class="footer">Differentiation</div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="eyebrow">Technology</div>
+        <h2 style="font-size: 42px; margin-top: 14px;">Enterprise-grade architecture with demo resilience.</h2>
+        <div class="grid-3" style="margin-top: 22px;">
+          <div class="panel"><h2>Frontend</h2><ul><li>React 18 + Vite</li><li>Tailwind CSS</li><li>Recharts</li><li>Conversational UI</li></ul></div>
+          <div class="panel"><h2>Backend</h2><ul><li>FastAPI</li><li>SQLAlchemy + SQLite</li><li>CSV ingestion</li><li>Audit log persistence</li></ul></div>
+          <div class="panel"><h2>AI Layer</h2><ul><li>Groq LLaMA 3.3 70B</li><li>Mock fallback for demos</li><li>Routing-ready architecture</li><li>Sub-second response target</li></ul></div>
+        </div>
+        <div class="panel" style="margin-top: 18px;">
+          <h2>Data flow</h2>
+          <p>Upload → rules engine → AI assistant → report/export → immutable log. The stack is built to stay alive even when the AI service is unavailable.</p>
+        </div>
+        <div class="footer">Tech stack</div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="eyebrow">Impact</div>
+        <h2 style="font-size: 42px; margin-top: 14px;">Concrete metrics judges can remember.</h2>
+        <div class="grid-2" style="margin-top: 22px;">
+          <div class="metric"><div class="badge">Speed</div><div class="big">85%</div><div class="small">reduction in manual GST processing time</div></div>
+          <div class="metric"><div class="badge">Auditability</div><div class="big">100%</div><div class="small">audit trail coverage across all actions</div></div>
+          <div class="metric"><div class="badge">Calculation</div><div class="big"><1 sec</div><div class="small">liability calculation across all slabs</div></div>
+          <div class="metric"><div class="badge">Savings</div><div class="big">₹1.8L</div><div class="small">average ITC savings per filing cycle</div></div>
+        </div>
+        <div class="panel" style="margin-top: 18px; text-align: center;">
+          <p style="font-size: 18px; font-weight: 700; color: white;">ComplianceIQ turns compliance from a repetitive task into a guided AI workflow.</p>
+        </div>
+        <div class="footer">Metrics</div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="eyebrow">Demo story</div>
+        <h2 style="font-size: 42px; margin-top: 14px;">What happens during the live demo?</h2>
+        <div class="grid-2" style="margin-top: 22px;">
+          <div class="panel">
+            <h2>Live flow</h2>
+            <ul>
+              <li>Load demo data or upload a CSV</li>
+              <li>See dashboard KPIs update instantly</li>
+              <li>Open GST Centre for liability and ITC analysis</li>
+              <li>Ask the AI agent a real compliance question</li>
+              <li>Show audit trail as proof of accountability</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h2>Demo-safe by design</h2>
+            <ul>
+              <li>Offline mock fallback for the AI layer</li>
+              <li>Backend API returns predictable results</li>
+              <li>Frontend stays responsive even without live data</li>
+              <li>Ideal for hackathon judging environments</li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer">Demo narrative</div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="eyebrow">Close</div>
+        <h2 style="font-size: 42px; margin-top: 14px;">Built in 18 hours. India-first. Hackathon-ready.</h2>
+        <div class="grid-2" style="margin-top: 22px;">
+          <div class="panel">
+            <h2>Roadmap</h2>
+            <ul>
+              <li>Live GST filing integrations</li>
+              <li>Deeper anomaly detection</li>
+              <li>ERP/accounting connectors</li>
+              <li>Multi-user finance team workflows</li>
+            </ul>
+          </div>
+          <div class="panel" style="background: rgba(34,197,94,.12);">
+            <h2>Ask</h2>
+            <p>Choose ComplianceIQ when you want a pitch that looks polished, demos live, and tells a clear India-first AI story.</p>
+          </div>
+        </div>
+        <div class="panel" style="margin-top: 18px; text-align: center;">
+          <p style="font-size: 18px; font-weight: 700; color: white;">ComplianceIQ is not just a dashboard. It is a conversational compliance copilot.</p>
+        </div>
+        <div class="footer">Roadmap and close</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="nav">
+    <button class="btn" id="prev">← Prev</button>
+    <button class="btn" id="next">Next →</button>
+  </div>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    let index = 0;
+    function show(i) {
+      index = (i + slides.length) % slides.length;
+      slides.forEach((s, idx) => s.classList.toggle('active', idx === index));
+    }
+    document.getElementById('prev').addEventListener('click', () => show(index - 1));
+    document.getElementById('next').addEventListener('click', () => show(index + 1));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') show(index + 1);
+      if (e.key === 'ArrowLeft') show(index - 1);
+    });
+  </script>
+</body>
+</html>
