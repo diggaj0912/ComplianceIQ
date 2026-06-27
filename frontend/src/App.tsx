@@ -30,7 +30,7 @@ import {
   Line,
 } from 'recharts'
 
-const API = '/api'
+const API = 'http://localhost:8000/api'
 const COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe']
 
 type StatCardProps = {

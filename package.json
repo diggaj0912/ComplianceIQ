@@ -15,7 +15,10 @@
     "build:frontend": "cd frontend && pnpm run build"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "autoprefixer": "^10.5.2",
+    "concurrently": "^8.2.2",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.1"
   },
   "pnpm": {
     "overrides": {
