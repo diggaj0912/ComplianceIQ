@@ -1,6 +1,6 @@
 # ComplianceIQ — AI-Powered GST Compliance Agent
 
-> Built by Team Alpha Coders | Hackathon 2025
+> Built by Team Tri Logic | Hackathon 2026
 
 ComplianceIQ is an enterprise-grade AI compliance agent that turns raw transaction data into audit-ready GST filings in seconds.
 
